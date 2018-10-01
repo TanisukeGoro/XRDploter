@@ -176,7 +176,6 @@ def XRDplot(*inpFile:str):
             Sample, theta, int = SampleName(curr_inp)
             I_max = (max(int))
             Int_arb = list(map(lambda x: ((x / I_max * 100) + (i*y_shift)), int))
->>>>>>> y-axis_shift_1
             trace = go.Scatter(
                 x = theta,
                 y = Int_arb,
