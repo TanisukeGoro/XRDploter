@@ -7,6 +7,22 @@ import plotly
 import plotly.offline as offline
 import plotly.graph_objs as go
 offline.init_notebook_mode(connected = True)
+
+class TxtColor:
+    BLACK     = '\033[30m'
+    RED       = '\033[31m'
+    GREEN     = '\033[32m'
+    YELLOW    = '\033[33m'
+    BLUE      = '\033[34m'
+    PURPLE    = '\033[35m'
+    CYAN      = '\033[36m'
+    WHITE     = '\033[37m'
+    END       = '\033[0m'
+    BOLD      = '\038[1m'
+    UNDERLINE = '\033[4m'
+    INVISIBLE = '\033[08m'
+    REVERCE   = '\033[07m'
+
 # Global variable
 G_title = ''
 
@@ -15,7 +31,7 @@ def SampleName(args:str):
     try:
         f =open(args, 'r')
     except :
-        print('FileOpenで[{}]が発生しました。' .format(sys.exc_info()))
+        print(TxtColor.RED + 'FileOpenで[{}]が発生しました。'+TxtColor.END .format(sys.exc_info()))
         sys.exit(1)
 
 
@@ -53,15 +69,15 @@ def SampleName(args:str):
         import os
         SampleName, extension = os.path.splitext(os.path.basename(args) )
     ans_S =''
-    print ('Do you change the Sumple name?? -> y / n')
+    print (TxtColor.BLUE + 'Do you change the Sumple name?? -> y / n'+ TxtColor.END)
     ans_S = input('>> ')
     while not (ans_S == 'y' or ans_S == 'n'):
-            print('Please check yes(y) or not(n)')
+            print(TxtColor.RED + 'Please check yes(y) or not(n)' + TxtColor.END)
             ans_S = input('>> ')
     if ans_S == 'y':
         SampleName = input(SampleName + '>> ')
 
-    print ("Sample Name : {0}" .format(SampleName))
+    print (TxtColor.GREEN + "Sample Name : {0}".format(SampleName) + TxtColor.END )
     return (SampleName, list_theta, list_int)
 
 def layout_single(mode:bool) :
@@ -131,6 +147,7 @@ def layout_single(mode:bool) :
 
     return layout_set
 
+
 def XRDplot(*inpFile:str):
     data =[]
     y_shift = 0
@@ -140,7 +157,7 @@ def XRDplot(*inpFile:str):
         inp = inpFile[0]
         Sample, theta, int = SampleName(inp)
         if len(theta) != len(int):
-            print("x-yの要素数が一致しません。")
+            print(TxtColor.RED + "x-yの要素数が一致しません。" + TxtColor.END )
             sys.exit(1)
 
         print ('filemane : {}' .format(Sample))
@@ -165,10 +182,10 @@ def XRDplot(*inpFile:str):
 
     if len(inpFile) > 1:
         filename = ""
-        print(' _______________________________________________')
+        print(TxtColor.GREEN + ' _______________________________________________' )
         print('|************* Lets Multiple plot. *************|')
         print('|       How mach do you shift to the y-axis?    |')
-        print(' -----------------------------------------------')
+        print(' -----------------------------------------------' + TxtColor.END)
         y_shift = input('>> ')
         y_shift = float(y_shift)
 
@@ -195,7 +212,7 @@ def XRDplot(*inpFile:str):
 
 
 def Q_title():
-    print ('Do you input Graph title? -> y / n ')
+    print (TxtColor.BLUE + 'Do you input Graph title? -> y / n ' + TxtColor.END)
     ans = input('>> ')
     return ans
 
@@ -203,11 +220,13 @@ if __name__ == "__main__" :
     args = sys.argv
     args.pop(0)
     ans = ''
+    ans = Q_title()
     while not (ans == 'y' or ans == 'n'):
-        print('Please check yes(y) or not(n)')
+
+        print(TxtColor.RED + 'Please check yes(y) or not(n)' + TxtColor.END)
         ans = Q_title()
     if ans == 'y':
 
-        print('|***** Input Graph title *****|')
+        print(TxtColor.BLUE + '|***** Input Graph title *****|' + TxtColor.END)
         G_title = input('>> ')
     XRDplot(*args)
