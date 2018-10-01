@@ -133,6 +133,7 @@ def layout_single(mode:bool) :
 
 def XRDplot(*inpFile:str):
     data =[]
+    y_shift = 0
     #print(inpFile)
     #print(len(inpFile))
     if len(inpFile) == 1:
@@ -164,10 +165,18 @@ def XRDplot(*inpFile:str):
 
     if len(inpFile) > 1:
         filename = ""
+        print(' _______________________________________________')
+        print('|************* Lets Multiple plot. *************|')
+        print('|       How mach do you shift to the y-axis?    |')
+        print(' -----------------------------------------------')
+        y_shift = input('>> ')
+        y_shift = float(y_shift)
+
         for i, curr_inp in enumerate(inpFile):
             Sample, theta, int = SampleName(curr_inp)
             I_max = (max(int))
-            Int_arb = list(map(lambda x: (x / I_max * 100) + (i)*100, int))
+            Int_arb = list(map(lambda x: ((x / I_max * 100) + (i*y_shift)), int))
+>>>>>>> y-axis_shift_1
             trace = go.Scatter(
                 x = theta,
                 y = Int_arb,
@@ -199,6 +208,7 @@ if __name__ == "__main__" :
         print('Please check yes(y) or not(n)')
         ans = Q_title()
     if ans == 'y':
-        print('Input Graph title')
+
+        print('|***** Input Graph title *****|')
         G_title = input('>> ')
     XRDplot(*args)
