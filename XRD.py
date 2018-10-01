@@ -164,12 +164,10 @@ def XRDplot(*inpFile:str):
 
     if len(inpFile) > 1:
         filename = ""
-        print("Lets Multiple plot. How mach do you shift to the y-axis?")
-        y_shift = input('>> ')
         for i, curr_inp in enumerate(inpFile):
             Sample, theta, int = SampleName(curr_inp)
             I_max = (max(int))
-            Int_arb = list(map(lambda x: (x / I_max * 100) + (i)*y_shift, int))
+            Int_arb = list(map(lambda x: (x / I_max * 100) + (i)*100, int))
             trace = go.Scatter(
                 x = theta,
                 y = Int_arb,
