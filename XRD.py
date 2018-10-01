@@ -77,7 +77,7 @@ def SampleName(args:str):
     if ans_S == 'y':
         SampleName = input(SampleName + '>> ')
 
-    print (TxtColor.GREEN + "Sample Name : {0}" + TxtColor.END .format(SampleName))
+    print (TxtColor.GREEN + "Sample Name : {0}".format(SampleName) + TxtColor.END )
     return (SampleName, list_theta, list_int)
 
 def layout_single(mode:bool) :
@@ -146,22 +146,6 @@ def layout_single(mode:bool) :
     )
 
     return layout_set
-
-
-class pycolor:
-    BLACK = '\033[30m'
-    RED = '\033[31m'
-    GREEN = '\033[32m'
-    YELLOW = '\033[33m'
-    BLUE = '\033[34m'
-    PURPLE = '\033[35m'
-    CYAN = '\033[36m'
-    WHITE = '\033[37m'
-    END = '\033[0m'
-    BOLD = '\038[1m'
-    UNDERLINE = '\033[4m'
-    INVISIBLE = '\033[08m'
-    REVERCE = '\033[07m'
 
 
 def XRDplot(*inpFile:str):
@@ -236,6 +220,7 @@ if __name__ == "__main__" :
     args = sys.argv
     args.pop(0)
     ans = ''
+    ans = Q_title()
     while not (ans == 'y' or ans == 'n'):
 
         print(TxtColor.RED + 'Please check yes(y) or not(n)' + TxtColor.END)
