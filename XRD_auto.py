@@ -17,6 +17,12 @@ SAVE_DIR= '/Resarch_TsaiLab/XRD/vsCalcu/'
 # congigはオフラインプロットのときに使用する。
 # CONFIG  = {'showLink': False}
 
+
+# Global variable
+graph_title = 'XRD auto-ploter v1.0.0'
+G_title = ''
+
+
 class TxtColor:
     BLACK     = '\033[30m'
     RED       = '\033[31m'
@@ -77,13 +83,10 @@ color_index = [
     'rgb()',
 ]
 
-# Global variable
-G_title = ''
-
-def get_file_data(args:str):
-    print('args is "{0}"' .format(args))
+def get_file_data(file_path:str):
+    print('File is "{0}"' .format(file_path))
     try:
-        f =open(args, 'r')
+        f =open(file_path, 'r')
     except:
         print(TxtColor.RED + 'FileOpenで[{}]が発生しました。'+TxtColor.END .format(sys.exc_info()))
         sys.exit(1)
@@ -112,7 +115,7 @@ def get_file_data(args:str):
 
     f.close()
 
-    inpFile_dir = os.path.dirname(args)
+    inpFile_dir = os.path.dirname(file_path)
     dirName = inpFile_dir + '/SampleName.txt'
     SNdata = open(dirName, "r")
     lines = SNdata.readlines()
@@ -131,7 +134,7 @@ def layout_single(mode:bool):
     global G_title
 
     if G_title == '' or G_title == 'str':
-        G_title = 'XRD ploter v0.8.3'
+        G_title = graph_title
 
     layout_set = go.Layout(
         title = G_title,
@@ -213,6 +216,7 @@ def chack_number_of_xy_element(x, y):
         print(TxtColor.RED + MsgTxt.error_xy_trace + TxtColor.END )
         sys.exit(1)
 
+
 def XRDplot(*input_file_path: str):
     data =[]
     y_shift = 0
@@ -221,7 +225,7 @@ def XRDplot(*input_file_path: str):
         inp = input_file_path[0]
         sample_name, theta, int = get_file_data(inp)
         chack_number_of_xy_element(theta, int)
-        print ('filemane: {}' .format(sample_name))
+        print ('filemane: {}'.format(sample_name))
         trace0 = go.Scatter(
             x = theta,
             y = int,

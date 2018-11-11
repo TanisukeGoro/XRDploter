@@ -5,8 +5,22 @@ import numpy as np
 import sys
 import plotly
 import plotly.offline as offline
+# import plotly.plotly as py
 import plotly.graph_objs as go
-offline.init_notebook_mode(connected = True)
+# offline.init_notebook_mode(connected = False)
+# 以下描画設定
+# switch of privacy
+SHARING     = 'private'
+FILEOPT     = 'overwrite'
+SAVE_DIR    = '/Users/abekeishi/Public/2.Programing/Python3/Tsai_resarch/XRDploter/HTML'
+# congigはオフラインプロットのときに使用する。
+CONFIG  = {'showLink': False}
+
+
+# Global variable
+graph_title = 'XRD ploter 1.0.0'
+G_title = ''
+
 
 class TxtColor:
     BLACK     = '\033[30m'
@@ -23,14 +37,58 @@ class TxtColor:
     INVISIBLE = '\033[08m'
     REVERCE   = '\033[07m'
 
-# Global variable
-G_title = ''
+class MsgTxt:
+    # 体裁を揃えるために空白行を制御. 天才
+    welcome_XRDploter = '\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n' + \
+                          '+            Welcome to the XRD graphing program !!           +\n' + \
+                          '+                     ver 1.0.0  2018.11.11                   +\n' + \
+                          '+                       now configuration                     +\n' + \
+                          '+              Sharing     : {0}{1}+\n'.format(SHARING, ' '*(33-len(SHARING))) + \
+                          '+              Save dir    : {0}{1}+\n'.format(SAVE_DIR, ' '*(33-len(SAVE_DIR))) + \
+                          '+              File update : {0}{1}+\n'.format(FILEOPT, ' '*(33-len(FILEOPT))) + \
+                          '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
 
-def SampleName(args:str):
-    #print('args is "{0}"' .format(args))
+    input_graphtitle  = '\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n' + \
+                          '+                      Input Graph title                      +\n' + \
+                          '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
+
+    multiplot_flag    = '\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n' + \
+                          '+                     Lets Multiple plot.                     +\n' + \
+                          '+              How mach do you shift to the y-axis?           +\n' + \
+                          '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
+
+    error_xy_trace    = '\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n' + \
+                          '+                           エラー !!                          +\n' + \
+                          '+                     x-yの要素数が一致しません。                 +\n' + \
+                          '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
+
+
+color_index = [
+    #check the color push coomand + shift + C
+    'rgb(37, 154, 255)', # blue
+    'rgb(212, 212, 212)', # grey
+    'rgb(255, 96, 96)', # red
+    'rgb(69, 198, 188)', # blue green
+    'rgb(215, 214, 76)', # yellowgreen
+    'rgb(27, 157, 26)', # green
+    'rgb(250, 10, 16)', # red
+    'rgb(212, 23, 255)', # parple
+    'rgb(25, 73, 82)', # darkseagreen
+    'rgb(194, 126, 185)',
+    'rgb()',
+    'rgb()',
+    'rgb()',
+    'rgb()',
+    'rgb()',
+]
+
+
+
+def get_file_data(file_path:str):
+    print('File is "{0}"' .format(file_path))
     try:
-        f =open(args, 'r')
-    except :
+        f =open(file_path, 'r')
+    except:
         print(TxtColor.RED + 'FileOpenで[{}]が発生しました。'+TxtColor.END .format(sys.exc_info()))
         sys.exit(1)
 
@@ -67,7 +125,7 @@ def SampleName(args:str):
 
     if not getSampleName :
         import os
-        SampleName, extension = os.path.splitext(os.path.basename(args) )
+        SampleName, extension = os.path.splitext(os.path.basename(file_path))
     ans_S =''
     print (TxtColor.BLUE + 'Do you change the Sumple name?? -> y / n'+ TxtColor.END)
     ans_S = input('>> ')
@@ -80,30 +138,41 @@ def SampleName(args:str):
     print (TxtColor.GREEN + "Sample Name : {0}".format(SampleName) + TxtColor.END )
     return (SampleName, list_theta, list_int)
 
+
 def layout_single(mode:bool) :
     if mode:
         yaxis = 'Intensity / count'
-    else :
+    else:
         yaxis = 'Intensity / arb.unit'
     global G_title
+
     if G_title == '' or G_title == 'str':
-        G_title = 'XRD ploter v0.2.1'
+        G_title = graph_title
 
     layout_set = go.Layout(
         title = G_title,
         titlefont = dict(
             size = 24,
             ),
+        height = 800,
+        width = 1200,
+        margin = dict(
+            r=80,
+            t=50,
+            b=80,
+            l=80,
+            pad=0,
+        ),
         xaxis =dict(
             title = "2-Theta / 2" + u"\u03B8",
             titlefont=dict(
             family='Arial-Black, sans-serif',
-            size=20,
+            size=28,
             color='black',
             ),
             tickfont=dict(
             family='Arial-Black, serif',
-            size=16,
+            size=22,
             color='black'
             ),
             showgrid=False,
@@ -113,18 +182,20 @@ def layout_single(mode:bool) :
             linewidth=4,
             ticks="inside",
             tickwidth=4,
+            # autorange = True,
+            range=[20, 90],
             #type='log',
         ),
         yaxis =dict(
             title = yaxis,
             titlefont=dict(
             family='Arial-Black, sans-serif',
-            size=20,
+            size=28,
             color='black',
             ),
             tickfont=dict(
             family='Arial-Black, serif',
-            size=16,
+            size=22,
             color='black'
             ),
             showgrid=False,
@@ -132,8 +203,11 @@ def layout_single(mode:bool) :
             mirror= 'ticks',
             zeroline=True,
             linewidth=4,
+            showticklabels = False,
             ticks="inside",
             tickwidth=4,
+            autorange = True,
+            # range=[0, 105],
             #type='log',
         ),
         #legend=dict(x=0.1, y=1.2, orientation="h"),
@@ -148,85 +222,91 @@ def layout_single(mode:bool) :
     return layout_set
 
 
-def XRDplot(*inpFile:str):
+def chack_number_of_xy_element(x, y):
+    if len(x) != len(y):
+        print(TxtColor.RED + MsgTxt.error_xy_trace + TxtColor.END )
+        sys.exit(1)
+
+
+def XRDplot(*input_file_path: str):
     data =[]
     y_shift = 0
-    #print(inpFile)
-    #print(len(inpFile))
-    if len(inpFile) == 1:
-        inp = inpFile[0]
-        Sample, theta, int = SampleName(inp)
-        if len(theta) != len(int):
-            print(TxtColor.RED + "x-yの要素数が一致しません。" + TxtColor.END )
-            sys.exit(1)
 
-        print ('filemane : {}' .format(Sample))
+    if len(input_file_path) == 1:
+        inp = input_file_path[0]
+        sample_name, theta, int = SampleName(inp)
+        chack_number_of_xy_element(theta, int)
+        print ('filemane: {}'.format(sample_name))
         trace0 = go.Scatter(
             x = theta,
             y = int,
             mode ='lines',
-            name = Sample,
+            name = sample_name,
             line = dict(
                 #color = ('rgb(205, 12, 24)'),
+                color = (color_index[0]),
                 width = 2,
                 #dash = 'dot'
             )
         )
         data = [trace0]
+        filename = SAVE_DIR + sample_name
         layout = layout_single(True)
-        fig = go.Figure(data =data, layout = layout)
-        #offline.plot(fig, filename = Sample ,image ="png", auto_open=True)
-        offline.plot(fig, filename = Sample ,auto_open=True)
+        fig = go.Figure(data=data, layout=layout)
+        # pt.plot(fig, filename=filename ,auto_open=True, sharing=SHARING)
+        offline.plot(fig, filename =filename, auto_open=True)
+        # offline.plot(fig, filename = filename, image="png", auto_open=True)
 
 
-
-    if len(inpFile) > 1:
+    if len(input_file_path) > 1:
         filename = ""
-        print(TxtColor.GREEN + ' _______________________________________________' )
-        print('|************* Lets Multiple plot. *************|')
-        print('|       How mach do you shift to the y-axis?    |')
-        print(' -----------------------------------------------' + TxtColor.END)
+        print (TxtColor.GREEN + MsgTxt.multiplot_flag + TxtColor.END)
         y_shift = input('>> ')
         y_shift = float(y_shift)
 
-        for i, curr_inp in enumerate(inpFile):
-            Sample, theta, int = SampleName(curr_inp)
+        for i, curr_inp in enumerate(input_file_path):
+            sample_name, theta, int = get_file_data(curr_inp)
+            chack_number_of_xy_element(theta, int)
             I_max = (max(int))
             Int_arb = list(map(lambda x: ((x / I_max * 100) + (i*y_shift)), int))
             trace = go.Scatter(
                 x = theta,
                 y = Int_arb,
-                name = Sample,
+                name = sample_name,
                 line = dict(
+                    color = (color_index[i]),
                     width = 2,
                     )
             )
             if i == 0:
-                filename = Sample
+                filename = sample_name
             else :
-                filename = filename + '_vs_' + Sample
+                    filename = SAVE_DIR + filename + '_vs_' + sample_name
             data +=  [trace]
         layout = layout_single(False)
-        fig = go.Figure(data =data, layout = layout)
-        offline.plot(fig, filename = filename,auto_open=True)
+        fig = go.Figure(data=data, layout=layout)
+        # py.plot(fig, filename = filename, auto_open=True, fileopt=FILEOPT)
+        offline.plot(fig, filename = filename,auto_open=True, config=CONFIG)
 
-
-def Q_title():
+def Question_title():
     print (TxtColor.BLUE + 'Do you input Graph title? -> y / n ' + TxtColor.END)
     ans = input('>> ')
     return ans
 
-if __name__ == "__main__" :
-    args = sys.argv
-    args.pop(0)
-    ans = ''
-    ans = Q_title()
-    while not (ans == 'y' or ans == 'n'):
 
+if __name__ == "__main__":
+    sys.argv.pop(0)
+    commandline_argv = sys.argv
+    print(TxtColor.BLUE + MsgTxt.welcome_XRDploter + TxtColor.END)
+    title_name = ''
+    title_name = Question_title()
+
+    while not (title_name == 'y' or title_name == 'n'):
         print(TxtColor.RED + 'Please check yes(y) or not(n)' + TxtColor.END)
-        ans = Q_title()
-    if ans == 'y':
+        title_name = Question_title()
 
-        print(TxtColor.BLUE + '|***** Input Graph title *****|' + TxtColor.END)
+    if title_name == 'y':
+        print(TxtColor.BLUE + MsgTxt.input_graphtitle + TxtColor.END)
         G_title = input('>> ')
-    XRDplot(*args)
+
+    XRDplot(*commandline_argv)
