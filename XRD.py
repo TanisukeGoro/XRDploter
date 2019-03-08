@@ -253,7 +253,7 @@ def XRDplot(*input_file_path: str):
         filename = SAVE_DIR + sample_name
         layout = layout_single(True)
         fig = go.Figure(data=data, layout=layout)
-        # pt.plot(fig, filename=filename ,auto_open=True, sharing=SHARING)
+        # py.plot(fig, filename=filename ,auto_open=True, sharing=SHARING)
         offline.plot(fig, filename =filename, auto_open=True)
         # offline.plot(fig, filename = filename, image="png", auto_open=True)
 

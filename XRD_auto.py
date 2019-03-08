@@ -1,4 +1,9 @@
 #coding:utf-8
+from module.msgtxt import MsgTxt
+from module.plotlayout import PlotLayout
+from module.color_config import TerminalFontColor
+from module.color_config import PlotColor
+
 import cchardet
 import re
 import numpy as np
@@ -11,85 +16,44 @@ import plotly.graph_objs as go
 # offline.init_notebook_mode(connected = False)
 # 以下描画設定
 # switch of privacy
+# PLTMODE = 'online'
+# SAVE_DIR= '/Resarch_TsaiLab/XRD/APCR/'
 SHARING = 'private'
-FILEOPT = 'overwrite'
-SAVE_DIR= '/Resarch_TsaiLab/XRD/vsCalcu/'
-# congigはオフラインプロットのときに使用する。
-# CONFIG  = {'showLink': False}
+FILEOPT = 'overwrite' #new or abs
 
+PLTMODE = 'offline'
+SAVE_DIR= ''
+
+# SAVE_DIR= '/Resarch_TsaiLab/XRD/Al72Pd16.4RuFe11.6/N10_N11_N17/900C/'
+# SAVE_DIR = '/Volumes/KEISHI_2018/1.M1/1.修士研究/2.実験データ/1.XRD/SpecimenNo17/#13N17_20181206_950_48h/'
+msg1 = MsgTxt(PLTMODE=PLTMODE, SHARING=SHARING, FILEOPT=FILEOPT, SAVE_DIR=SAVE_DIR)
+# congigはオフラインプロットのときに使用する。
+CONFIG  = {'showLink': False}
 
 # Global variable
 graph_title = 'XRD auto-ploter v1.0.0'
-G_title = ''
+G_title =''
+# G_title = 'Al<sub>72.0</sub>Pd<sub>16.4</sub>(Ru<sub>(100-x)%</sub>, Fe<sub>x%</sub>)<sub>11.4</sub>,1273K 48h; x = 100, 80, 75, 70 '
+G_title = 'Al<sub>72.0</sub>Pd<sub>16.4</sub>(Ru<sub>(100-x)%</sub>, Fe<sub>x%</sub>)<sub>11.4</sub>'
 
+def check_input_yesno(answer:str):
+    while not (answer == 'y' or answer == 'n'):
+        print(TerminalFontColor.RED + 'Please check yes(y) or not(n)' + TerminalFontColor.END)
+        answer = input('>> ')
+    return answer
 
-class TxtColor:
-    BLACK     = '\033[30m'
-    RED       = '\033[31m'
-    GREEN     = '\033[32m'
-    YELLOW    = '\033[33m'
-    BLUE      = '\033[34m'
-    PURPLE    = '\033[35m'
-    CYAN      = '\033[36m'
-    WHITE     = '\033[37m'
-    END       = '\033[0m'
-    BOLD      = '\038[1m'
-    UNDERLINE = '\033[4m'
-    INVISIBLE = '\033[08m'
-    REVERCE   = '\033[07m'
-
-class MsgTxt:
-    # 体裁を揃えるために空白行を制御. 天才
-    welcome_XRDploter = '\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n' + \
-                          '+            Welcome to the XRD graphing program !!           +\n' + \
-                          '+                     ver 1.0.0  2018.11.11                   +\n' + \
-                          '+                       now configuration                     +\n' + \
-                          '+              Sharing     : {0}{1}+\n'.format(SHARING, ' '*(33-len(SHARING))) + \
-                          '+              Save dir    : {0}{1}+\n'.format(SAVE_DIR, ' '*(33-len(SAVE_DIR))) + \
-                          '+              File update : {0}{1}+\n'.format(FILEOPT, ' '*(33-len(FILEOPT))) + \
-                          '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
-
-    input_graphtitle  = '\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n' + \
-                          '+                      Input Graph title                      +\n' + \
-                          '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
-
-    multiplot_flag    = '\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n' + \
-                          '+                     Lets Multiple plot.                     +\n' + \
-                          '+              How mach do you shift to the y-axis?           +\n' + \
-                          '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
-
-    error_xy_trace    = '\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n' + \
-                          '+                           エラー !!                          +\n' + \
-                          '+                     x-yの要素数が一致しません。                 +\n' + \
-                          '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
-
-
-color_index = [
-    #check the color push coomand + shift + C
-    'rgb(37, 154, 255)', # blue
-    'rgb(212, 212, 212)', # grey
-    'rgb(255, 96, 96)', # red
-    'rgb(69, 198, 188)', # blue green
-    'rgb(215, 214, 76)', # yellowgreen
-    'rgb(27, 157, 26)', # green
-    'rgb(250, 10, 16)', # red
-    'rgb(212, 23, 255)', # parple
-    'rgb(25, 73, 82)', # darkseagreen
-    'rgb(194, 126, 185)',
-    'rgb()',
-    'rgb()',
-    'rgb()',
-    'rgb()',
-    'rgb()',
-]
 
 def get_file_data(file_path:str):
-    print('File is "{0}"' .format(file_path))
+
+    print('File is "{0}"' .format(os.path.basename(file_path)))
     try:
         f =open(file_path, 'r')
     except:
-        print(TxtColor.RED + 'FileOpenで[{}]が発生しました。'+TxtColor.END .format(sys.exc_info()))
+        print(TerminalFontColor.RED + \
+        "FileOpenで[{0}]が発生しました。".format(sys.exc_info()) + \
+        TerminalFontColor.END)
         sys.exit(1)
+
 
 
     regData = r'^(?![-+]0+$)[-+]?([1-9][0-9]*)?[0-9](\.[0-9]+)?$'
@@ -117,13 +81,18 @@ def get_file_data(file_path:str):
 
     inpFile_dir = os.path.dirname(file_path)
     dirName = inpFile_dir + '/SampleName.txt'
-    SNdata = open(dirName, "r")
-    lines = SNdata.readlines()
-    SNdata.close()
-    print (TxtColor.GREEN + "Sample Name: {0}".format(lines[0]) + TxtColor.END )
+    if os.path.isfile(dirName):
+        SNdata = open(dirName, "r")
+        SampleName_text = SNdata.readlines()
+        SNdata.close()
+        print (TerminalFontColor.GREEN + "Sample Name: {0}".format(SampleName_text[0]) + \
+         TerminalFontColor.END )
+    else:
+        print(TerminalFontColor.RED + 'SampleName.txt is not exist !!' + TerminalFontColor.END)
+        print (TerminalFontColor.RED + "XRD_auto.py is exit." + TerminalFontColor.END)
+        sys.exit()
 
-
-    return (lines[0], list_theta, list_int)
+    return (SampleName_text[0], list_theta, list_int)
 
 
 def layout_single(mode:bool):
@@ -136,88 +105,43 @@ def layout_single(mode:bool):
     if G_title == '' or G_title == 'str':
         G_title = graph_title
 
-    layout_set = go.Layout(
-        title = G_title,
-        titlefont = dict(
-            size = 16,
-            ),
-        height = 400,
-        width = 600,
-        margin = dict(
-            r=20,
-            t=30,
-            b=60,
-            l=40,
-            pad=0,
-        ),
-        xaxis =dict(
-            title = "2-Theta / 2" + u"\u03B8",
-            titlefont=dict(
-            family='Arial-Black, sans-serif',
-            size=22,
-            color='black',
-            ),
-            tickfont=dict(
-            family='Arial-Black, serif',
-            size=18,
-            color='black'
-            ),
-            showgrid=False,
-            showline = True,
-            mirror= 'ticks',
-            zeroline=True,
-            linewidth=4,
-            ticks="inside",
-            tickwidth=4,
-            # autorange = True,
-            range=[20, 90],
-            #type='log',
-        ),
-        yaxis =dict(
-            title = yaxis,
-            titlefont=dict(
-            family='Arial-Black, sans-serif',
-            size=22,
-            color='black',
-            ),
-            tickfont=dict(
-            family='Arial-Black, serif',
-            size=18,
-            color='black'
-            ),
-            showgrid=False,
-            showline = True,
-            mirror= 'ticks',
-            zeroline=True,
-            linewidth=4,
-            showticklabels = False,
-            ticks="inside",
-            tickwidth=4,
-            autorange = True,
-            # range=[0, 105],
-            #type='log',
-        ),
-        legend=dict(
-            x=0.55,
-            y=1.0,
-            # orientation="h",
-            traceorder='reversed',
-            font = dict(
-            size = 16,
-            ),
-        ),
-    )
+        print(TerminalFontColor.RED + msg1.no_setting_Gtitle + TerminalFontColor.END)
+        doset_graphtitle = input('>> ')
+        doset_graphtitle = check_input_yesno(doset_graphtitle)
+        print(doset_graphtitle)
+        if doset_graphtitle == 'y':
+            print(TerminalFontColor.BLUE + msg1.input_graphtitle + TerminalFontColor.END)
+            G_title = input('>> ')
 
-    return layout_set
+    layout_set = PlotLayout(YAXIS=yaxis, G_title=G_title)
+    # print (layout_set.playout)
+    # print (layout_set)
+    return layout_set.playout
 
 
 def chack_number_of_xy_element(x, y):
     if len(x) != len(y):
-        print(TxtColor.RED + MsgTxt.error_xy_trace + TxtColor.END )
+        print(TerminalFontColor.RED + msg1.error_xy_trace + TerminalFontColor.END)
         sys.exit(1)
 
 
-def XRDplot(*input_file_path: str):
+def chack_filename_length(fname: str):
+
+    if len(fname) > 35:
+        # chack_len =TerminalFontColor.RED + msg1.plot_file_name(fname) +TerminalFontColor.END
+        chack_len =msg1.plot_file_name(fname)
+        # print(chack_len.caution_charleng)
+        change_fileYN = input('>> ')
+        change_fileYN = check_input_yesno(change_fileYN)
+
+        if change_fileYN == 'y':
+            print(TerminalFontColor.BLUE + msg1.input_filename + TerminalFontColor.END)
+            fname = input('>> ')
+
+    return fname
+
+
+def goXRDplot(*input_file_path: str):
     data =[]
     y_shift = 0
 
@@ -233,23 +157,28 @@ def XRDplot(*input_file_path: str):
             name = sample_name,
             line = dict(
                 #color = ('rgb(205, 12, 24)'),
-                color = (color_index[0]),
+                color = (PlotColor.color_index[0]),
                 width = 2,
                 #dash = 'dot'
             )
         )
         data = [trace0]
+        filename = sample_name
+        filename = chack_filename_length(filename)
         filename = SAVE_DIR + sample_name
         layout = layout_single(True)
         fig = go.Figure(data=data, layout=layout)
-        pt.plot(fig, filename=filename ,auto_open=True, sharing=SHARING)
+        if PLTMODE =='online':
+            py.plot(fig, filename=filename ,auto_open=True, sharing=SHARING)
+        else:
+            offline.plot(fig, filename = filename,auto_open=True, config=CONFIG)
         # offline.plot(fig, filename =filename, auto_open=True)
         # offline.plot(fig, filename = filename, image="png", auto_open=True)
 
 
     if len(input_file_path) > 1:
         filename = ""
-        print (TxtColor.GREEN + MsgTxt.multiplot_flag + TxtColor.END)
+        print (TerminalFontColor.GREEN + msg1.multiplot_flag + TerminalFontColor.END)
         y_shift = input('>> ')
         y_shift = float(y_shift)
 
@@ -257,13 +186,17 @@ def XRDplot(*input_file_path: str):
             sample_name, theta, int = get_file_data(curr_inp)
             chack_number_of_xy_element(theta, int)
             I_max = (max(int))
-            Int_arb = list(map(lambda x: ((x / I_max * 100) + (i*y_shift)), int))
+            if I_max == 0:
+                Int_arb = list(map(lambda x: (x + (i*y_shift)), int))
+            else:
+                Int_arb = list(map(lambda x: ((x / I_max * 100) + (i*y_shift)), int))
+
             trace = go.Scatter(
                 x = theta,
                 y = Int_arb,
                 name = sample_name,
                 line = dict(
-                    color = (color_index[i]),
+                    color = (PlotColor.color_index[i]),
                     width = 2,
                     )
             )
@@ -272,38 +205,35 @@ def XRDplot(*input_file_path: str):
                 filename = sample_name
             else:
                 # filename = SAVE_DIR + 'Ru100to70%Comparison'
-                filename = SAVE_DIR + filename + '_vs_' + sample_name
+                filename = filename + '_vs_' + sample_name
             data +=  [trace]
+
+        # filename = "Al<sub>72.0</sub>Pd<sub>16.4</sub>(Ru<sub>(100-x)%</sub>, Fe<sub>x%</sub>)<sub>11.4</sub>; 900 C48h, 1000C 48h, 1000C, 720h"
+        filename = chack_filename_length(filename)
+        filename = SAVE_DIR + filename
 
         layout = layout_single(False)
         fig = go.Figure(data =data, layout = layout)
 
-        py.plot(fig,
-                filename = filename,
-                auto_open=True,
-                fileopt=FILEOPT)
-        # offline.plot(fig, filename = filename,auto_open=True, config=config)
-
-
-def Question_title():
-    print (TxtColor.BLUE + 'Do you input Graph title? -> y / n ' + TxtColor.END)
-    title_name = input('>> ')
-    return title_name
+        if PLTMODE =='online':
+            py.plot(fig, filename = filename, auto_open=True, fileopt=FILEOPT, sharing=SHARING)
+        else:
+            offline.plot(fig, filename = filename,auto_open=True, config=CONFIG)
 
 
 if __name__ == "__main__":
     sys.argv.pop(0)
     commandline_argv = sys.argv
-    print(TxtColor.BLUE + MsgTxt.welcome_XRDploter + TxtColor.END)
-    title_name = ''
-    title_name = Question_title()
-
-    while not (title_name == 'y' or title_name == 'n'):
-        print(TxtColor.RED + 'Please check yes(y) or not(n)' + TxtColor.END)
-        title_name = Question_title()
+    msg1.msgbox()
+    print(TerminalFontColor.BLUE + str(msg1) + TerminalFontColor.END)
+    print (TerminalFontColor.BLUE + 'Do you input Graph title? -> y / n ' + TerminalFontColor.END)
+    # graph title
+    title_name = 'y'
+    title_name = check_input_yesno(title_name)
 
     if title_name == 'y':
-        print(TxtColor.BLUE + MsgTxt.input_graphtitle + TxtColor.END)
-        G_title = input('>> ')
+        print(TerminalFontColor.BLUE + msg1.input_graphtitle + TerminalFontColor.END)
+        # G_title = input('>> ')
+        print ('>> ' + G_title)
 
-    XRDplot(*commandline_argv)
+    goXRDplot(*commandline_argv)
