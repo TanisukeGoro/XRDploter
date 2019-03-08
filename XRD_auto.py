@@ -10,24 +10,38 @@ import numpy as np
 import os
 import sys
 import plotly
-# import plotly.offline as offline
+import plotly.offline as offline
 import plotly.plotly as py
 import plotly.graph_objs as go
 # offline.init_notebook_mode(connected = False)
 # 以下描画設定
 # switch of privacy
-PLTMODE = 'online'
+# PLTMODE = 'online'
+# SAVE_DIR= '/Resarch_TsaiLab/XRD/APCR/'
 SHARING = 'private'
 FILEOPT = 'overwrite' #new or abs
-SAVE_DIR= '/Resarch_TsaiLab/XRD/AlPdRuFe_compare/'
+
+PLTMODE = 'offline'
+SAVE_DIR= ''
+
+# SAVE_DIR= '/Resarch_TsaiLab/XRD/Al72Pd16.4RuFe11.6/N10_N11_N17/900C/'
+# SAVE_DIR = '/Volumes/KEISHI_2018/1.M1/1.修士研究/2.実験データ/1.XRD/SpecimenNo17/#13N17_20181206_950_48h/'
 msg1 = MsgTxt(PLTMODE=PLTMODE, SHARING=SHARING, FILEOPT=FILEOPT, SAVE_DIR=SAVE_DIR)
 # congigはオフラインプロットのときに使用する。
-# CONFIG  = {'showLink': False}
+CONFIG  = {'showLink': False}
 
 # Global variable
 graph_title = 'XRD auto-ploter v1.0.0'
 G_title =''
 # G_title = 'Al<sub>72.0</sub>Pd<sub>16.4</sub>(Ru<sub>(100-x)%</sub>, Fe<sub>x%</sub>)<sub>11.4</sub>,1273K 48h; x = 100, 80, 75, 70 '
+G_title = 'Al<sub>72.0</sub>Pd<sub>16.4</sub>(Ru<sub>(100-x)%</sub>, Fe<sub>x%</sub>)<sub>11.4</sub>'
+
+def check_input_yesno(answer:str):
+    while not (answer == 'y' or answer == 'n'):
+        print(TerminalFontColor.RED + 'Please check yes(y) or not(n)' + TerminalFontColor.END)
+        answer = input('>> ')
+    return answer
+
 
 def get_file_data(file_path:str):
 
@@ -35,8 +49,11 @@ def get_file_data(file_path:str):
     try:
         f =open(file_path, 'r')
     except:
-        print(TerminalFontColor.RED + 'FileOpenで[{}]が発生しました。'+TerminalFontColor.END .format(sys.exc_info()))
+        print(TerminalFontColor.RED + \
+        "FileOpenで[{0}]が発生しました。".format(sys.exc_info()) + \
+        TerminalFontColor.END)
         sys.exit(1)
+
 
 
     regData = r'^(?![-+]0+$)[-+]?([1-9][0-9]*)?[0-9](\.[0-9]+)?$'
@@ -64,15 +81,18 @@ def get_file_data(file_path:str):
 
     inpFile_dir = os.path.dirname(file_path)
     dirName = inpFile_dir + '/SampleName.txt'
-    SNdata = open(dirName, "r")
-    lines = SNdata.readlines()
-    SNdata.close()
-    print(lines)
-    # lines = ['11', '1223']
-    print (TerminalFontColor.GREEN + "Sample Name: {0}".format(lines[0]) + TerminalFontColor.END )
+    if os.path.isfile(dirName):
+        SNdata = open(dirName, "r")
+        SampleName_text = SNdata.readlines()
+        SNdata.close()
+        print (TerminalFontColor.GREEN + "Sample Name: {0}".format(SampleName_text[0]) + \
+         TerminalFontColor.END )
+    else:
+        print(TerminalFontColor.RED + 'SampleName.txt is not exist !!' + TerminalFontColor.END)
+        print (TerminalFontColor.RED + "XRD_auto.py is exit." + TerminalFontColor.END)
+        sys.exit()
 
-
-    return (lines[0], list_theta, list_int)
+    return (SampleName_text[0], list_theta, list_int)
 
 
 def layout_single(mode:bool):
@@ -84,6 +104,15 @@ def layout_single(mode:bool):
 
     if G_title == '' or G_title == 'str':
         G_title = graph_title
+
+        print(TerminalFontColor.RED + msg1.no_setting_Gtitle + TerminalFontColor.END)
+        doset_graphtitle = input('>> ')
+        doset_graphtitle = check_input_yesno(doset_graphtitle)
+        print(doset_graphtitle)
+        if doset_graphtitle == 'y':
+            print(TerminalFontColor.BLUE + msg1.input_graphtitle + TerminalFontColor.END)
+            G_title = input('>> ')
+
     layout_set = PlotLayout(YAXIS=yaxis, G_title=G_title)
     # print (layout_set.playout)
     # print (layout_set)
@@ -99,13 +128,11 @@ def chack_number_of_xy_element(x, y):
 def chack_filename_length(fname: str):
 
     if len(fname) > 35:
-        chack_len =TerminalFontColor.RED + msg1.plot_file_name(fname) +TerminalFontColor.END
-        print(chack_len.caution_charleng)
+        # chack_len =TerminalFontColor.RED + msg1.plot_file_name(fname) +TerminalFontColor.END
+        chack_len =msg1.plot_file_name(fname)
+        # print(chack_len.caution_charleng)
         change_fileYN = input('>> ')
-
-        while not (change_fileYN == 'y' or change_fileYN == 'n'):
-            print(TerminalFontColor.RED + 'Please check yes(y) or not(n)' + TerminalFontColor.END)
-            change_fileYN = input('>> ')
+        change_fileYN = check_input_yesno(change_fileYN)
 
         if change_fileYN == 'y':
             print(TerminalFontColor.BLUE + msg1.input_filename + TerminalFontColor.END)
@@ -114,7 +141,7 @@ def chack_filename_length(fname: str):
     return fname
 
 
-def XRDplot(*input_file_path: str):
+def goXRDplot(*input_file_path: str):
     data =[]
     y_shift = 0
 
@@ -141,7 +168,10 @@ def XRDplot(*input_file_path: str):
         filename = SAVE_DIR + sample_name
         layout = layout_single(True)
         fig = go.Figure(data=data, layout=layout)
-        py.plot(fig, filename=filename ,auto_open=True, sharing=SHARING)
+        if PLTMODE =='online':
+            py.plot(fig, filename=filename ,auto_open=True, sharing=SHARING)
+        else:
+            offline.plot(fig, filename = filename,auto_open=True, config=CONFIG)
         # offline.plot(fig, filename =filename, auto_open=True)
         # offline.plot(fig, filename = filename, image="png", auto_open=True)
 
@@ -156,7 +186,11 @@ def XRDplot(*input_file_path: str):
             sample_name, theta, int = get_file_data(curr_inp)
             chack_number_of_xy_element(theta, int)
             I_max = (max(int))
-            Int_arb = list(map(lambda x: ((x / I_max * 100) + (i*y_shift)), int))
+            if I_max == 0:
+                Int_arb = list(map(lambda x: (x + (i*y_shift)), int))
+            else:
+                Int_arb = list(map(lambda x: ((x / I_max * 100) + (i*y_shift)), int))
+
             trace = go.Scatter(
                 x = theta,
                 y = Int_arb,
@@ -174,6 +208,7 @@ def XRDplot(*input_file_path: str):
                 filename = filename + '_vs_' + sample_name
             data +=  [trace]
 
+        # filename = "Al<sub>72.0</sub>Pd<sub>16.4</sub>(Ru<sub>(100-x)%</sub>, Fe<sub>x%</sub>)<sub>11.4</sub>; 900 C48h, 1000C 48h, 1000C, 720h"
         filename = chack_filename_length(filename)
         filename = SAVE_DIR + filename
 
@@ -183,7 +218,8 @@ def XRDplot(*input_file_path: str):
         if PLTMODE =='online':
             py.plot(fig, filename = filename, auto_open=True, fileopt=FILEOPT, sharing=SHARING)
         else:
-            offline.plot(fig, filename = filename,auto_open=True, config=config)
+            offline.plot(fig, filename = filename,auto_open=True, config=CONFIG)
+
 
 if __name__ == "__main__":
     sys.argv.pop(0)
@@ -191,15 +227,13 @@ if __name__ == "__main__":
     msg1.msgbox()
     print(TerminalFontColor.BLUE + str(msg1) + TerminalFontColor.END)
     print (TerminalFontColor.BLUE + 'Do you input Graph title? -> y / n ' + TerminalFontColor.END)
+    # graph title
     title_name = 'y'
-
-    while not (title_name == 'y' or title_name == 'n'):
-        print(TerminalFontColor.RED + 'Please check yes(y) or not(n)' + TerminalFontColor.END)
-        title_name = input('>> ')
+    title_name = check_input_yesno(title_name)
 
     if title_name == 'y':
         print(TerminalFontColor.BLUE + msg1.input_graphtitle + TerminalFontColor.END)
         # G_title = input('>> ')
         print ('>> ' + G_title)
 
-    XRDplot(*commandline_argv)
+    goXRDplot(*commandline_argv)

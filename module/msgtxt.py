@@ -13,7 +13,7 @@ class MsgTxt:
         colum = terminal_size.columns
         if colum > 100:
             colum = 100
-            
+
 
         self._plotmode = PLTMODE
         self._sharing  = SHARING
@@ -52,16 +52,25 @@ class MsgTxt:
     def msgbox(self):
         gt= 'Input Graph title'
         gt_space1, gt_space2 = self.get_space_sub_routine(gt)
+
         fn= 'Input File name'
         fn_space1, fn_space2 = self.get_space_sub_routine(fn)
+
         mp= 'Lets Multiple plot.'
         mp_space1, mp_space2 = self.get_space_sub_routine(mp)
         wm= 'How mach do you shift to the y-axis?'
         wm_space1, wm_space2 = self.get_space_sub_routine(wm)
+
         er=  'Error !!'
         er_space1, er_space2 = self.get_space_sub_routine(er)
         xy=  'The both number of x and y element  do not match.'
         xy_space1, xy_space2 = self.get_space_sub_routine(xy)
+
+        ng= 'You are not setting Graph title.'
+        ng_space1, ng_space2 = self.get_space_sub_routine(ng)
+        sg= 'Do you setting the graph tile? yse(y) / no(n)'
+        sg_space1, sg_space2 = self.get_space_sub_routine(sg)
+
 
         self.input_graphtitle = '\n {0} \n'.format('+'*(self._colum-2)) + \
                               ' +{0}{1}{2}+ \n'.format(' ' * gt_space1, gt, ' ' * gt_space2) + \
@@ -82,6 +91,11 @@ class MsgTxt:
         self.error_xy_trace   = '\n {0} \n'.format('+'*(self._colum-2)) + \
                               ' +{0}{1}{2}+ \n'.format(' ' * er_space1, er, ' ' * er_space2) + \
                               ' +{0}{1}{2}+\n'.format(' ' * xy_space1, xy, ' ' * xy_space2) + \
+                              ' {0} \n'.format('+'*(self._colum-2))
+
+        self.no_setting_Gtitle= '\n {0} \n'.format('+'*(self._colum-2)) + \
+                              ' +{0}{1}{2}+ \n'.format(' ' * ng_space1, ng, ' ' * ng_space2) + \
+                              ' +{0}{1}{2}+\n'.format(' ' * sg_space1, sg, ' ' * sg_space2) + \
                               ' {0} \n'.format('+'*(self._colum-2))
         # print (error_xy_trace)
 

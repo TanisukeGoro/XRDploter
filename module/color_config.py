@@ -2,8 +2,8 @@
 class PlotColor:
     color_index = [
         #check the color push coomand + shift + C
+        # 'rgb(212, 212, 212)', # grey
         'rgb(37, 154, 255)', # blue
-        'rgb(212, 212, 212)', # grey
         'rgb(255, 96, 96)', # red
         'rgb(69, 198, 188)', # blue green
         'rgb(215, 214, 76)', # yellowgreen
