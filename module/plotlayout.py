@@ -5,12 +5,16 @@ class PlotLayout:
         self._yaxis = YAXIS
         self._gtitle = G_title
         self.playout =go.Layout(
-            title =self._gtitle,
+            title =dict(
+                text=self._gtitle,
+                x=0.5
+            ),
             titlefont = dict(
-                size = 16,
+                size = 20,
                 ),
-            height = 400,
-            width = 600,
+            height = 600,
+            width = 800,
+            plot_bgcolor = 'white',
             margin = dict(
                 r=20,
                 t=30,
@@ -18,6 +22,7 @@ class PlotLayout:
                 l=40,
                 pad=0,
             ),
+            hidesources = True,
             xaxis =dict(
                 title = "2-Theta / 2" + u"\u03B8",
                 titlefont=dict(
@@ -30,6 +35,7 @@ class PlotLayout:
                 size=18,
                 color='black'
                 ),
+                linecolor='black',
                 showgrid=False,
                 showline = True,
                 mirror= 'ticks',
@@ -38,7 +44,7 @@ class PlotLayout:
                 ticks="inside",
                 tickwidth=4,
                 # autorange = True,
-                range=[20, 90],
+                range=[20, 80],
                 #type='log',
             ),
             yaxis =dict(
@@ -53,6 +59,7 @@ class PlotLayout:
                 size=18,
                 color='black'
                 ),
+                linecolor='black',
                 showgrid=False,
                 showline = True,
                 mirror= 'ticks',

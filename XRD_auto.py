@@ -4,36 +4,42 @@ from module.plotlayout import PlotLayout
 from module.color_config import TerminalFontColor
 from module.color_config import PlotColor
 
-import cchardet
 import re
 import numpy as np
 import os
 import sys
+
+import chart_studio
 import plotly
 import plotly.offline as offline
-import plotly.plotly as py
+import chart_studio.plotly as py
 import plotly.graph_objs as go
 # offline.init_notebook_mode(connected = False)
 # 以下描画設定
-# switch of privacy
+# switch of online or offline
+# online
 # PLTMODE = 'online'
-# SAVE_DIR= '/Resarch_TsaiLab/XRD/APCR/'
-SHARING = 'private'
-FILEOPT = 'overwrite' #new or abs
-
-PLTMODE = 'offline'
 SAVE_DIR= ''
+SHARING = 'public'
+
+# SHARING = 'private'
+FILEOPT = 'overwrite' #new or abs
+# offline
+PLTMODE = 'offline'
+# SAVE_DIR= ''
 
 # SAVE_DIR= '/Resarch_TsaiLab/XRD/Al72Pd16.4RuFe11.6/N10_N11_N17/900C/'
-# SAVE_DIR = '/Volumes/KEISHI_2018/1.M1/1.修士研究/2.実験データ/1.XRD/SpecimenNo17/#13N17_20181206_950_48h/'
+SAVE_DIR = '/Users/abekeishi/Desktop/'
 msg1 = MsgTxt(PLTMODE=PLTMODE, SHARING=SHARING, FILEOPT=FILEOPT, SAVE_DIR=SAVE_DIR)
 # congigはオフラインプロットのときに使用する。
-CONFIG  = {'showLink': False}
+CONFIG  = {'showLink': True, 'plotlyServerURL': 'https://chart-studio.plotly.com'}
 
 # Global variable
 graph_title = 'XRD auto-ploter v1.0.0'
 G_title =''
 # G_title = 'Al<sub>72.0</sub>Pd<sub>16.4</sub>(Ru<sub>(100-x)%</sub>, Fe<sub>x%</sub>)<sub>11.4</sub>,1273K 48h; x = 100, 80, 75, 70 '
+# Al<sub>72.0</sub>Pd<sub>16.4</sub>(Ru<sub>(100-x)%</sub>, Fe<sub>x%</sub>)<sub>11.2</sub> 1273K 48h; x = 0
+# Al<sub>67.2</sub>Pd<sub>24.4</sub>(Ru<sub>(100-x)</sub>, Fe<sub>x</sub>)<sub>8.4</sub>
 G_title = 'Al<sub>72.0</sub>Pd<sub>16.4</sub>(Ru<sub>(100-x)%</sub>, Fe<sub>x%</sub>)<sub>11.4</sub>'
 
 def check_input_yesno(answer:str):
@@ -42,12 +48,17 @@ def check_input_yesno(answer:str):
         answer = input('>> ')
     return answer
 
+def remove_control_characters(string:str):
+    mpa = dict.fromkeys(range(32))
+    return string.translate(mpa).strip()
 
 def get_file_data(file_path:str):
 
-    print('File is "{0}"' .format(os.path.basename(file_path)))
+    print('File => "{0}"' .format(os.path.basename(file_path)))
     try:
         f =open(file_path, 'r')
+        lines = f.readlines()
+        f.close()
     except:
         print(TerminalFontColor.RED + \
         "FileOpenで[{0}]が発生しました。".format(sys.exc_info()) + \
@@ -60,9 +71,19 @@ def get_file_data(file_path:str):
     patternData = re.compile(regData)
     list_theta = []
     list_int =[]
-    getSampleName = False
+    sample = [line for line in lines if 'sample'  in line.lower()]
+    if len(sample) > 0:
+        sample = sample[0].replace('Sample', '')
+        sample = sample.replace('sample', '')
+        sample = remove_control_characters(sample)
+        print (TerminalFontColor.GREEN + "Sample Name: {0}".format(sample) + \
+         TerminalFontColor.END )
 
-    for lines in f:
+    else:
+        print (TerminalFontColor.BLUE + 'サンプル名が取得できませんでした。サンプル名を入力してください' + TerminalFontColor.END)
+        sample = input('>> ')
+
+    for lines in lines:
         int_data = lines.lstrip()
         int_data = lines.rstrip()
         int_data = lines.expandtabs(1)
@@ -77,22 +98,7 @@ def get_file_data(file_path:str):
             list_theta.extend (theta_value)
             list_int.extend (int_value)
 
-    f.close()
-
-    inpFile_dir = os.path.dirname(file_path)
-    dirName = inpFile_dir + '/SampleName.txt'
-    if os.path.isfile(dirName):
-        SNdata = open(dirName, "r")
-        SampleName_text = SNdata.readlines()
-        SNdata.close()
-        print (TerminalFontColor.GREEN + "Sample Name: {0}".format(SampleName_text[0]) + \
-         TerminalFontColor.END )
-    else:
-        print(TerminalFontColor.RED + 'SampleName.txt is not exist !!' + TerminalFontColor.END)
-        print (TerminalFontColor.RED + "XRD_auto.py is exit." + TerminalFontColor.END)
-        sys.exit()
-
-    return (SampleName_text[0], list_theta, list_int)
+    return (sample, list_theta, list_int)
 
 
 def layout_single(mode:bool):
@@ -157,7 +163,7 @@ def goXRDplot(*input_file_path: str):
             name = sample_name,
             line = dict(
                 #color = ('rgb(205, 12, 24)'),
-                color = (PlotColor.color_index[0]),
+                color = ('rgb(0, 0, 0)'),
                 width = 2,
                 #dash = 'dot'
             )
@@ -167,6 +173,7 @@ def goXRDplot(*input_file_path: str):
         filename = chack_filename_length(filename)
         filename = SAVE_DIR + sample_name
         layout = layout_single(True)
+        # print(layout)
         fig = go.Figure(data=data, layout=layout)
         if PLTMODE =='online':
             py.plot(fig, filename=filename ,auto_open=True, sharing=SHARING)
@@ -210,14 +217,15 @@ def goXRDplot(*input_file_path: str):
 
         # filename = "Al<sub>72.0</sub>Pd<sub>16.4</sub>(Ru<sub>(100-x)%</sub>, Fe<sub>x%</sub>)<sub>11.4</sub>; 900 C48h, 1000C 48h, 1000C, 720h"
         filename = chack_filename_length(filename)
-        filename = SAVE_DIR + filename
+        filename = SAVE_DIR + filename + '.html'
 
         layout = layout_single(False)
         fig = go.Figure(data =data, layout = layout)
 
         if PLTMODE =='online':
-            py.plot(fig, filename = filename, auto_open=True, fileopt=FILEOPT, sharing=SHARING)
+            py.plot(fig, filename=filename, auto_open=True, fileopt=FILEOPT, sharing=SHARING)
         else:
+            # fig.show()
             offline.plot(fig, filename = filename,auto_open=True, config=CONFIG)
 
 
@@ -228,12 +236,13 @@ if __name__ == "__main__":
     print(TerminalFontColor.BLUE + str(msg1) + TerminalFontColor.END)
     print (TerminalFontColor.BLUE + 'Do you input Graph title? -> y / n ' + TerminalFontColor.END)
     # graph title
-    title_name = 'y'
+    # title_name = ''
+    title_name = ''
     title_name = check_input_yesno(title_name)
 
     if title_name == 'y':
         print(TerminalFontColor.BLUE + msg1.input_graphtitle + TerminalFontColor.END)
-        # G_title = input('>> ')
+        G_title = input('>> ')
         print ('>> ' + G_title)
 
     goXRDplot(*commandline_argv)
