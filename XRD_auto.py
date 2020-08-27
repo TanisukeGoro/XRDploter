@@ -153,12 +153,12 @@ def goXRDplot(*input_file_path: str):
 
     if len(input_file_path) == 1:
         inp = input_file_path[0]
-        sample_name, theta, int = get_file_data(inp)
-        chack_number_of_xy_element(theta, int)
+        sample_name, theta, intensity = get_file_data(inp)
+        chack_number_of_xy_element(theta, intensity)
         print ('filemane: {}'.format(sample_name))
         trace0 = go.Scatter(
             x = theta,
-            y = int,
+            y = intensity,
             mode ='lines',
             name = sample_name,
             line = dict(
@@ -190,13 +190,13 @@ def goXRDplot(*input_file_path: str):
         y_shift = float(y_shift)
 
         for i, curr_inp in enumerate(input_file_path):
-            sample_name, theta, int = get_file_data(curr_inp)
-            chack_number_of_xy_element(theta, int)
-            I_max = (max(int))
+            sample_name, theta, intensity = get_file_data(curr_inp)
+            chack_number_of_xy_element(theta, intensity)
+            I_max = (max(intensity))
             if I_max == 0:
-                Int_arb = list(map(lambda x: (x + (i*y_shift)), int))
+                Int_arb = list(map(lambda x: (x + (i*y_shift)), intensity))
             else:
-                Int_arb = list(map(lambda x: ((x / I_max * 100) + (i*y_shift)), int))
+                Int_arb = list(map(lambda x: ((x / I_max * 100) + (i*y_shift)), intensity))
 
             trace = go.Scatter(
                 x = theta,
